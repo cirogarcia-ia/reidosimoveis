@@ -241,6 +241,10 @@ button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;ba
 <div class="toast" id="toast"></div>
 <script src="dados.js"></script>
 <script src="store.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>window.REI_PAINEL=true</script>
+<script src="store-supabase.js"></script>
 <script>
 (function(){
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
@@ -279,14 +283,17 @@ function telaLogin(){
   <div class="f"><label>E-mail</label><input type="email" name="email" autocomplete="username" required></div>
   <div class="f"><label>Senha</label><input type="password" name="senha" autocomplete="current-password" required></div>
   <button class="btn b-escuro" style="width:100%">Entrar</button><span class="demo-tag">Prévia: qualquer e-mail e senha entram</span></form></div>`;
-  $('#fLogin').onsubmit=e=>{e.preventDefault();logado=true;USUARIO=e.target.email.value.trim().toLowerCase();try{sessionStorage.setItem('rei_admin','1');sessionStorage.setItem('rei_user',USUARIO)}catch(er){}app()};
+  $('#fLogin').onsubmit=async e=>{e.preventDefault();const em=e.target.email.value.trim().toLowerCase(),se=e.target.senha.value;
+    if(Rei.entrar){const b=$('#fLogin button');b.disabled=true;b.textContent='Entrando...';const r=await Rei.entrar(em,se);if(r.erro){b.disabled=false;b.textContent='Entrar';let x=$('#fLogin .erro-login');if(!x){x=document.createElement('p');x.className='erro-login';x.style.cssText='color:var(--err);font-weight:700;font-size:14px;margin-top:12px';$('#fLogin').append(x)}x.textContent=r.erro;return}}
+    logado=true;USUARIO=em;conhecidos=new Set(db().leads.map(l=>l.id));try{sessionStorage.setItem('rei_admin','1');sessionStorage.setItem('rei_user',USUARIO)}catch(er){}app()};
+  if(Rei.modo==='supabase'){const t=$('.demo-tag');if(t)t.remove()}
 }
 function app(){
   R.innerHTML=`<div class="mob-top"><img src="logo-claro.png" alt=""><button id="abrirSide">${ic.menu}</button></div><div class="app"><aside class="side" id="side"><div class="lg"><img src="logo-claro.png" alt="Rei dos Imóveis"></div>
   ${[['painel','Painel',ic.painel],['contatos','Contatos',ic.contatos],['imoveis','Imóveis',ic.emp],['emp','Lançamentos parceiros',ic.emp],['materiais','Materiais',ic.mat],['blog','Blog',ic.blog],['news','Newsletter',ic.news],['cfg','Configurações',ic.cfg]].map(([k,t,i])=>`<button data-aba="${k}" class="${S.aba===k?'on':''}">${i}${t}${k==='contatos'&&novos()?`<b>${novos()}</b>`:''}</button>`).join('')}
   <div class="pe"><a href="index.html" target="_blank">Ver o site ↗</a><br><button id="sair">Sair</button></div></aside><main class="main" id="main"></main></div>`;
   $$('[data-aba]').forEach(b=>b.onclick=()=>{S.aba=b.dataset.aba;$('#side').classList.remove('on');app()});
-  $('#sair').onclick=()=>{logado=false;try{sessionStorage.removeItem('rei_admin')}catch(e){}telaLogin()};
+  $('#sair').onclick=async()=>{logado=false;try{sessionStorage.removeItem('rei_admin');sessionStorage.removeItem('rei_user')}catch(e){}if(Rei.sair)await Rei.sair();telaLogin()};
   $('#abrirSide').onclick=()=>$('#side').classList.toggle('on');
   ({painel,contatos,imoveis:imoveisTela,emp:empTela,materiais,blog,news,cfg:config})[S.aba]();
   document.title=(novos()?`(${novos()}) `:'')+'Painel | Rei dos Imóveis';
@@ -605,12 +612,12 @@ function config(){
   <h3 style="margin-top:24px">IA de cadastro</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:10px">Endereço da função da IA e a chave do painel (estão no passo a passo da entrega).</p>
   <div class="f"><label>Endereço da IA</label><input id="c7" value="${esc(c.iaUrl||'')}" placeholder="https://xxxx.supabase.co/functions/v1/ia-cadastro"></div><div class="f"><label>Chave do painel</label><input id="c8" type="password" value="${esc(c.iaChave||'')}"></div><button class="btn b-linha" id="salvarIA">Salvar IA</button></div>
   <div class="card"><h3>Foto do ${esc(c.corretor||'corretor')}</h3><div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><img class="foto-prev" src="${esc(c.foto||'coroa.png')}" alt="" style="${c.foto?'':'object-fit:contain;padding:20px'}"><div><p style="font-size:13.5px;color:var(--muted);margin-bottom:10px">Aparece na página inicial e em Quem somos. Use uma foto vertical, de preferência com fundo neutro.</p><label class="btn b-linha" style="cursor:pointer">Escolher foto<input type="file" id="foto" accept="image/*" hidden></label>${c.foto?' <button class="btn b-erro" id="tiraFoto">Remover</button>':''}</div></div>
-  <h3 style="margin-top:26px">Prévia</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:10px">Nesta prévia os dados ficam salvos só neste navegador. Na versão publicada, tudo fica no banco de dados com login seguro.</p><button class="btn b-erro" id="reset">Apagar dados de teste</button></div></div>`;
+  ${Rei.modo==='supabase'?'':`<h3 style="margin-top:26px">Prévia</h3><p style="font-size:13.5px;color:var(--muted);margin-bottom:10px">Nesta prévia os dados ficam salvos só neste navegador. Na versão publicada, tudo fica no banco de dados com login seguro.</p><button class="btn b-erro" id="reset">Apagar dados de teste</button>`}</div></div>`;
   $('#salvarIA').onclick=()=>{Rei.setConfig({iaUrl:$('#c7').value.trim(),iaChave:$('#c8').value.trim()});toast($('#c7').value.trim()?'IA conectada':'IA desconectada')};
   $('#salvar').onclick=()=>{Rei.setConfig({corretor:$('#c1').value.trim()||'Ciro',creci:$('#c2').value.trim(),telefone:$('#c3').value.trim(),email:$('#c4').value.trim(),instagram:$('#c5').value.trim(),youtube:$('#c6').value.trim()});toast('Configurações salvas')};
   $('#foto').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{const k=Math.min(1,900/img.height);const cv=document.createElement('canvas');cv.width=img.width*k;cv.height=img.height*k;cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);Rei.setConfig({foto:cv.toDataURL('image/webp',.85)});toast('Foto atualizada');app()};img.src=URL.createObjectURL(f)};
   const tf=$('#tiraFoto');if(tf)tf.onclick=()=>{Rei.setConfig({foto:''});app()};
-  $('#reset').onclick=e=>{const b=e.currentTarget;if(b.dataset.c){Rei.resetarDemo();toast('Dados de teste apagados');app()}else{b.dataset.c=1;b.textContent='Clique de novo para apagar tudo'}};
+  if($('#reset'))$('#reset').onclick=e=>{const b=e.currentTarget;if(b.dataset.c){Rei.resetarDemo();toast('Dados de teste apagados');app()}else{b.dataset.c=1;b.textContent='Clique de novo para apagar tudo'}};
 }
 // notificações em tempo real (outra aba / site)
 let conhecidos=new Set(db().leads.map(l=>l.id));
@@ -618,8 +625,11 @@ Rei.aoMudar(externo=>{if(!externo)return;const novos2=db().leads.filter(l=>!conh
   novos2.forEach(l=>{const t=l.tipo==='newsletter'?'Nova inscrição na newsletter':'Novo contato: '+l.nome;const s=(TIPOS[l.tipo]||'')+(l.empreendimento?' · '+l.empreendimento:'');toast(t,s);
     try{if('Notification' in window&&Notification.permission==='granted')new Notification(t,{body:s,icon:'coroa.png'})}catch(e){}
     try{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.15,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.5);o.start();o.stop(a.currentTime+.5)}catch(e){}});
-  if(logado&&!$('.drawer'))app()});
-logado?app():telaLogin();
+  if(logado&&!$('.drawer')&&!$('#fFicha')&&!$('#ler'))app()});
+window.addEventListener('rei-erro',e=>toast(e.detail,'Nada foi perdido na tela; tente salvar de novo.'));
+if(Rei.modo==='supabase'){R.innerHTML='<div class="login"><div class="box" style="text-align:center"><img src="logo-cor.png" alt="Rei dos Imóveis"><p style="margin-top:16px">Carregando...</p></div></div>';
+  Rei.pronto.then(()=>{logado=Rei.sessao();USUARIO=Rei.usuario();try{sessionStorage.setItem('rei_user',USUARIO)}catch(e){}conhecidos=new Set(db().leads.map(l=>l.id));logado?app():telaLogin()});}
+else logado?app():telaLogin();
 })();
 </script>
 </body>

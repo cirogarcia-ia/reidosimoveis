@@ -94,7 +94,9 @@
   const ouvintes = [];
   window.addEventListener('storage', (e) => { if (e.key === CHAVE) { DB = ler(); ouvintes.forEach((f) => { try { f(true); } catch (er) {} }); } });
 
+  window.__REI_INICIAIS = { POSTS_INICIAIS, MATERIAIS_INICIAIS, CONFIG_INICIAL };
   window.Rei = {
+    pronto: Promise.resolve(),
     get db() { return DB; },
     recarregar() { DB = ler(); },
     aoMudar(f) { ouvintes.push(f); },

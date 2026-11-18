@@ -121,7 +121,7 @@
         er.hidden = true;
         const b = $('button[type=submit]', f); b.disabled = true; b.textContent = 'Enviando...';
         const info = Object.assign({ tipo: f.dataset.tipo, pagina: location.hash || '#/' }, typeof extra === 'function' ? extra(f) : extra || {}, d);
-        await Rei.enviarLead(info);
+        try { await Rei.enviarLead(info); } catch (er) { b.disabled = false; b.textContent = 'Tentar de novo'; return falha('Não conseguimos enviar agora. Tente de novo ou fale com a gente no WhatsApp.'); }
         const sucesso = f.dataset.ok || 'Recebemos seus dados. A Rei dos Imóveis vai falar com você em breve.';
         const depois = f.dataset.depois ? `<a class="btn btn-ouro" style="margin-top:20px" href="${esc(f.dataset.depois)}" target="_blank" rel="noopener">${I.doc} Abrir o material</a>` : '';
         f.innerHTML = `<div class="ok-msg"><div class="ic">${I.ok}</div><h3>Tudo certo, ${esc(d.nome.trim().split(' ')[0])}!</h3><p>${esc(sucesso)}</p>${depois}</div>`;
@@ -730,4 +730,5 @@
   $('#fecharG').onclick = () => $('#gaveta').classList.remove('aberta');
   addEventListener('hashchange', render);
   rodape(); contaFav(); render();
+  if (Rei.carregado === false) Rei.pronto.then(() => { rodape(); contaFav(); render(); });
 })();
