@@ -12,7 +12,8 @@
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
 
   let DB = { leads: [], posts: [], materiais: [], config: Object.assign({}, INI.CONFIG_INICIAL), emp: {}, imoveis: [] };
-  let usuario = null;
+  let usuario = null, meuPapel = '';
+  DB.equipe = [];
   const ouvintes = [];
   const avisa = (ext) => ouvintes.forEach((f) => { try { f(ext); } catch (e) {} });
   const erro = (msg, e) => { console.error(msg, e); window.dispatchEvent(new CustomEvent('rei-erro', { detail: msg })); };
@@ -49,6 +50,8 @@
     DB.imoveis = (ims.data || []).map((r) => r.dados);
   }
   async function ehEquipe() { const r = await sb.rpc('e_equipe'); return r.data === true; }
+  async function lerPapel() { const r = await sb.rpc('meu_papel'); meuPapel = r.data || 'corretor'; }
+  async function lerEquipe() { const r = await sb.from('equipe').select('*').order('criado_em'); DB.equipe = r.data || []; }
   let canal = null;
   async function carregarPainel() {
     const [leads, ims, priv] = await Promise.all([
@@ -56,10 +59,11 @@
       sb.from('imoveis').select('dados').order('atualizado_em', { ascending: false }),
       sb.from('config_privada').select('dados').eq('id', 1).maybeSingle(),
     ]);
+    await Promise.all([lerPapel(), lerEquipe()]);
     DB.leads = (leads.data || []).map((r) => Object.assign({ id: r.id, criado_em: r.criado_em }, r.dados));
     DB.imoveis = (ims.data || []).map((r) => r.dados);
     Object.assign(DB.config, (priv.data && priv.data.dados) || {});
-    if (!DB.config.semeado) { // primeira entrada: grava os posts e materiais que já estavam no site
+    if (!DB.config.semeado && meuPapel === 'administrador') { // primeira entrada: grava os posts e materiais que já estavam no site
       await enfileira(async () => {
         if (DB.posts.length) ok(await sb.from('posts').upsert(DB.posts.map((p) => ({ id: String(p.id), dados: p }))));
         if (DB.materiais.length) ok(await sb.from('materiais').upsert(DB.materiais.map((m) => ({ id: String(m.id), dados: m }))));
@@ -88,6 +92,20 @@
     salvar() {}, uid,
     sessao: () => !!usuario,
     usuario: () => (usuario ? usuario.email : ''),
+    papel: () => meuPapel || 'corretor',
+    async cadastrarMembro({ nome, email, papel, telefone, senha }) {
+      email = String(email || '').trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(email)) return { erro: 'E-mail inválido.' };
+      if (String(senha || '').length < 6) return { erro: 'A senha precisa ter pelo menos 6 caracteres.' };
+      const aux = window.supabase.createClient(C.url, C.anonKey, { auth: { persistSession: false, autoRefreshToken: false, storageKey: 'rei-cadastro-' + Date.now() } });
+      const su = await aux.auth.signUp({ email, password: senha, options: { data: { nome } } });
+      if (su.error && !/already|registered|exists/i.test(su.error.message)) return { erro: 'Não foi possível criar o login: ' + su.error.message };
+      const ins = await sb.from('equipe').upsert({ email, nome, papel, telefone: telefone || null, ativo: true });
+      if (ins.error) return { erro: ins.error.message };
+      await lerEquipe(); avisa(false);
+      return { ok: true, jaExistia: !!(su.error) || (su.data && su.data.user && su.data.user.identities && su.data.user.identities.length === 0) };
+    },
+    async atualizarMembro(email, mud) { const r = await sb.from('equipe').update(mud).eq('email', email); if (r.error) return { erro: r.error.message }; await lerEquipe(); return { ok: true }; },
     async entrar(email, senha) {
       const r = await sb.auth.signInWithPassword({ email, password: senha });
       if (r.error) return { erro: /invalid/i.test(r.error.message) ? 'E-mail ou senha incorretos.' : r.error.message };

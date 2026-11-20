@@ -83,6 +83,7 @@
     d.config = Object.assign({}, CONFIG_INICIAL, d.config || {});
     d.emp = d.emp || {};
     d.imoveis = d.imoveis || [];
+    d.equipe = d.equipe || [];
     return d;
   }
   let DB = ler();
@@ -104,6 +105,8 @@
     uid,
     enviarLead(dados) {
       const l = Object.assign({ id: uid(), criado_em: agora(), status: 'novo', lido: false, notas: [] }, dados);
+      const cs = (DB.equipe || []).filter((e) => e.ativo !== false && e.papel === 'corretor').sort((a, b) => String(a.ultimo_lead || '').localeCompare(String(b.ultimo_lead || '')));
+      if (cs.length && !l.corretor) { l.corretor = cs[0].email; cs[0].ultimo_lead = agora(); }
       DB.leads.unshift(l); salvar(); return Promise.resolve(l);
     },
     atualizarLead(id, mud) { const l = DB.leads.find((x) => x.id === id); if (l) { Object.assign(l, mud); salvar(); } return l; },
@@ -125,6 +128,10 @@
     },
     excluirImovel(id) { DB.imoveis = DB.imoveis.filter((x) => x.id !== id); salvar(); },
     substituir(d) { DB = d; salvar(); },
+    papel: () => 'administrador',
+    cadastrarMembro(m) { const email = String(m.email || '').trim().toLowerCase(); if (!/^\S+@\S+\.\S+$/.test(email)) return Promise.resolve({ erro: 'E-mail inválido.' }); if (String(m.senha || '').length < 6) return Promise.resolve({ erro: 'A senha precisa ter pelo menos 6 caracteres.' });
+      DB.equipe = DB.equipe.filter((x) => x.email !== email).concat({ email, nome: m.nome, papel: m.papel, telefone: m.telefone || '', ativo: true, criado_em: agora() }); salvar(); return Promise.resolve({ ok: true }); },
+    atualizarMembro(email, mud) { const x = DB.equipe.find((e) => e.email === email); if (x) Object.assign(x, mud); salvar(); return Promise.resolve({ ok: true }); },
     resetarDemo() { try { localStorage.removeItem(CHAVE); } catch (e) {} DB = ler(); salvar(); }
   };
 })();

@@ -63,7 +63,7 @@
   function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2600); }
   const WA_PADRAO = '5547996392360';
   const WA_MSG = 'Olá! Vim pelo site da Rei dos Imóveis e quero informações sobre ';
-  function waNum() { const d = String(cfg().whatsapp || cfg().telefone || '').replace(/\D/g, ''); return d.length >= 12 ? d : d.length >= 10 ? '55' + d : WA_PADRAO; }
+  function waNum() { return WA_PADRAO; } // todas as mensagens prontas vão para o WhatsApp oficial (47) 99639-2360
   function waLink(msg) { return 'https://wa.me/' + waNum() + '?text=' + encodeURIComponent(msg || WA_MSG); }
   const VIDEO_HERO = 'qE2Sh48yUgQ'; // vídeo do YouTube pedido pelo cliente
   function videoHero() {
@@ -92,14 +92,9 @@
     const base = `<div class="cp-f"><label>Nome</label><input name="nome" autocomplete="name" required></div>
       <div class="g2"><div class="cp-f"><label>E-mail</label><input name="email" type="email" autocomplete="email" required></div>
       <div class="cp-f"><label>WhatsApp</label><input name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" required></div></div>`;
-    if (tipo === 'curto') return base;
-    if (tipo === 'atendimento') return base + `<div class="g2"><div class="cp-f"><label>Objetivo</label><select name="objetivo">${opts(OBJETIVOS)}</select></div>
+    return base + `<div class="g2"><div class="cp-f"><label>Objetivo</label><select name="objetivo">${opts(OBJETIVOS)}</select></div>
       <div class="cp-f"><label>Faixa de valor</label><select name="faixa">${opts(FAIXAS)}</select></div></div>
-      <div class="cp-f"><label>Prefere contato por</label><select name="horario">${opts(['Ligação', 'Vídeo chamada', 'Combinar por WhatsApp'])}</select></div>
-      <div class="cp-f"><label>Conte um pouco do que você procura (opcional)</label><textarea name="mensagem"></textarea></div>`;
-    return base + `<div class="g2"><div class="cp-f"><label>Sua cidade</label><input name="cidade" autocomplete="address-level2"></div>
-      <div class="cp-f"><label>Objetivo</label><select name="objetivo">${opts(OBJETIVOS)}</select></div></div>
-      <div class="cp-f"><label>Faixa de valor</label><select name="faixa">${opts(FAIXAS)}</select></div>`;
+      <div class="cp-f"><label>Observações (opcional)</label><textarea name="mensagem" placeholder="Conte o que você procura ou deixe sua dúvida"></textarea></div>`;
   }
   function htmlForm({ titulo, dica, tipo, botao, campos }) {
     return `<form class="form js-form" data-tipo="${tipo}" novalidate>
@@ -215,7 +210,6 @@
       <label class="campo-b"><span>Fase</span><select name="estagio"><option value="">Todas</option>${FASES.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></label>
       <button class="btn btn-escuro" type="submit">Buscar ${I.seta}</button></form></div></section>
 
-    ${secEncontre(E)}
     <section class="sec" style="padding-top:20px"><div class="wrap">
       <div data-r style="margin-bottom:40px"><span class="kick">Empreendimento em destaque</span></div>
       <a class="destaque" href="${rotaDe(dest)}" data-r>
@@ -304,7 +298,7 @@
         </div>
         <aside class="cad-lado"><div class="cad-preco"><span>${m.valor ? (m.aPartir ? 'A partir de' : 'Valor de venda') : 'Valor'}</span><b>${m.valor ? brl(m.valor) : 'Sob consulta'}</b>${valores.map(([k, v]) => `<small>${k}: ${v}</small>`).join('')}${m.financiamento || m.permuta ? `<div class="cad-aceita">${m.financiamento ? '<i>Aceita financiamento</i>' : ''}${m.permuta ? '<i>Aceita permuta</i>' : ''}</div>` : ''}
           <a class="btn btn-wa" href="${waLink(msg)}" target="_blank" rel="noopener">Falar no WhatsApp</a></div>
-          ${htmlForm({ titulo: 'Quero mais informações', dica: 'Deixe seus dados e a assessoria fala com você.', tipo: 'contato', botao: 'Enviar', campos: 'curto' })}</aside>
+          ${htmlForm({ titulo: 'Quero mais informações', dica: 'Deixe seus dados e a assessoria fala com você.', tipo: 'contato', botao: 'Enviar' })}</aside>
       </div></div></section>` + conhecaTambem(e);
   }
   const ytId = (u) => (String(u).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/) || [, String(u).trim()])[1];
@@ -312,7 +306,7 @@
   function retrato() {
     const c = cfg();
     return `<div class="retrato">${c.foto ? `<img class="foto" src="${esc(c.foto)}" alt="${esc(c.corretor)}">` : `<img class="emblema" src="coroa.png" alt="">`}
-      <div class="assin"><b>${esc(c.corretor || 'Rei dos Imóveis')}</b><span>Rei dos Imóveis${c.creci ? ' · CRECI ' + esc(c.creci) : ' · Litoral SC'}</span></div></div>`;
+      <div class="assin"><b>${esc(c.corretor || 'Rei dos Imóveis')}</b><span>Creci 41.418 | CNAI 4978</span></div></div>`;
   }
   function ligarHome() {
     const E0 = emps(); const dest = achar(cfg().destaque) || E0[0];
@@ -664,11 +658,11 @@
   function rodape() {
     const c = cfg();
     $('#rodape').innerHTML = `<div class="wrap"><div class="cols">
-      <div><a href="#/" class="marca"><img src="logo-claro.png" alt="Rei dos Imóveis"></a><p style="margin-top:18px;max-width:300px">Especialistas no m² mais valorizado do Brasil. Brava, Balneário Camboriú, Itapema e Porto Belo.</p>
-        ${c.creci ? `<p style="margin-top:10px;font-size:13px">CRECI ${esc(c.creci)}</p>` : ''}
+      <div><a href="#/" class="marca"><img src="logo-claro.png" alt="Rei dos Imóveis"></a><p style="margin-top:18px;max-width:340px">Cada escolha começa com seus objetivos.<br>Nós ajudamos você a encontrar o caminho.</p>
+        <p class="empresa">REI DOS IMOVEIS GESTAO DE VENDAS LTDA<br>CNPJ 41.815.607/0001-07 · CRECI PJ 7475</p>
         <div class="redes"><a href="${esc(c.instagram)}" target="_blank" rel="noopener" aria-label="Instagram">${I.ig}</a><a href="${esc(c.youtube)}" target="_blank" rel="noopener" aria-label="YouTube">${I.yt}</a><a href="${esc(c.linkedin || 'https://www.linkedin.com/company/reidosim%C3%B3veis/home/')}" target="_blank" rel="noopener" aria-label="LinkedIn">${I.li}</a></div></div>
       <div><h4>Navegue</h4><a href="#/pronto-para-morar">Pronto para morar</a><a href="#/empreendimentos">Apartamentos na planta</a><a href="#/vivapark-porto-belo">VivaPark Porto Belo</a><a href="#/all-resort-porto-belo">ALL WERT</a><a href="#/sobre-nos">Sobre nós</a><a href="#/blog">Blog</a><a href="#/materiais">Materiais</a><a href="#/atendimento">Atendimento</a></div>
-      <div><h4>Links úteis</h4><a href="#/materiais/masterplan-de-porto-belo">Masterplan de Porto Belo</a><a href="#/materiais/projeto-itajai-2040">Projeto Itajaí 2040</a><a href="${esc(c.youtube)}" target="_blank" rel="noopener">Canal no YouTube</a>${c.telefone ? `<a href="tel:+55${c.telefone.replace(/\D/g, '')}">${esc(c.telefone)}</a>` : ''}${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</div>
+      <div><h4>Links úteis</h4><a href="#/materiais/masterplan-de-porto-belo">Masterplan de Porto Belo</a><a href="#/materiais/projeto-itajai-2040">Projeto Itajaí 2040</a>${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}</div>
       <div><h4>Newsletter</h4><p>Receba informações exclusivas e os pré-lançamentos antes de todo mundo.</p>
         <form class="news js-news" novalidate><input name="nome" placeholder="Seu nome" aria-label="Seu nome"><input name="email" type="email" placeholder="Seu e-mail" aria-label="Seu e-mail"><button class="btn btn-ouro" type="submit">Assinar</button></form></div>
     </div><div class="base"><span>© ${new Date().getFullYear()} Rei dos Imóveis · Litoral SC</span><nav><a href="admin.html">Área do corretor</a><a href="#/privacidade">Privacidade</a><a href="#/termos">Termos de uso</a><a href="#/cookies">Cookies</a></nav></div></div>`;

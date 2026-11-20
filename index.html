@@ -7,14 +7,14 @@
 <meta name="description" content="Rei dos Imóveis: empreendimentos de alto padrão em Balneário Camboriú, Praia Brava, Itapema e Porto Belo. Atendimento personalizado para investir, morar ou veranear no litoral catarinense.">
 <link rel="icon" href="coroa.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&family=Cinzel:wght@400;500;600&family=Barlow+Condensed:ital,wght@0,200;0,300;1,200;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Cinzel:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@0,200;0,300;1,200;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{color-scheme:light;
-  --ink:#14120f;--ink2:#1d1a15;--ink3:#2a261f;--gold:#b99b65;--gold2:#d8c294;--gold3:#8d7344;
-  --paper:#fbf8f2;--cream:#f3ede2;--sand:#e9e0cf;--line:#e2d9c8;--txt:#1d1b17;--muted:#6f685c;--muted2:#9a917f;
+  --ink:#14120f;--ink2:#1d1a15;--ink3:#2a261f;--gold:#BB9B63;--gold2:#d6be8e;--gold3:#8f7444;--cinza:#525252;
+  --paper:#fbf8f2;--cream:#f3ede2;--sand:#e9e0cf;--line:#e2d9c8;--txt:#2f2f2f;--muted:#525252;--muted2:#9a917f;
   --ok:#2f7a55;--err:#a3452d;--r:18px;--max:1200px;
-  --serif:'EB Garamond',Garamond,'Times New Roman',serif;--sans:'Manrope',system-ui,sans-serif;
+  --serif:'Cinzel','Trajan Pro',Georgia,serif;--sans:'Montserrat',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -349,7 +349,7 @@ h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.01em;line-hei
 .legal h2{font-size:30px;margin-top:40px}
 .legal ul{padding-left:20px}
 /* footer */
-.rodape{background:var(--ink);color:#c9c1b2;padding:90px 0 30px;font-size:14.5px}
+.rodape{background:#0d2030;color:#c9c1b2;padding:90px 0 30px;font-size:14.5px}
 .rodape .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.3fr;gap:40px}
 .rodape h4{font-family:var(--sans);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);margin-bottom:16px;font-weight:700}
 .rodape a{display:block;padding:5px 0;transition:color .2s}
@@ -624,15 +624,28 @@ h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.01em;line-hei
 /* nov/2026 v5 · frase principal em Cinzel */
 .hero h1.h-cond{font-family:'Cinzel',Georgia,serif;font-weight:500;text-transform:none;letter-spacing:.01em;line-height:1.12;font-size:clamp(26px,4vw,60px)}
 .h-cond>span:nth-child(2)>i{font-style:normal;color:var(--gold2)}
+
+/* nov/2026 v6 · logo oficial ao lado do RDI + Conteúdos em botão */
+.marca-dupla{display:flex;align-items:center;gap:14px}
+.marca-dupla i{width:1px;height:34px;background:rgba(20,18,15,.18)}
+.marca-dupla .marca-of,.topo.solido .marca-dupla .marca-of{height:50px;width:auto}
+.nav>.drop>button.nav-pill{background:var(--gold);color:var(--ink);height:46px;padding:0 22px;border-radius:999px;font-size:15px;font-weight:700;display:inline-flex;align-items:center;transition:background .25s,transform .25s,box-shadow .25s}
+.nav>.drop>button.nav-pill::after{display:none}
+.nav>.drop:hover>button.nav-pill,.nav>.drop>button.nav-pill.ativo{background:var(--gold2);color:var(--ink);transform:translateY(-2px);box-shadow:0 10px 24px rgba(185,155,101,.35)}
+.nav>.drop>button.nav-pill.ativo{box-shadow:inset 0 0 0 2px var(--ink)}
+@media (max-width:1240px){.nav>.drop>button.nav-pill{padding:0 16px;font-size:14px}.marca-dupla .marca-of{height:36px}}
+@media (max-width:1080px){.marca-dupla{gap:10px}.marca-dupla i{height:26px}.marca-dupla .marca-of,.topo.solido .marca-dupla .marca-of{height:34px}}
+.rodape .empresa{margin-top:14px;font-size:12.5px;line-height:1.6;letter-spacing:.02em;color:rgba(255,255,255,.62)}
+h1,h2,h3{letter-spacing:.01em}
 </style>
 </head>
 <body>
 <header class="topo" id="topo"><div class="wrap">
-  <a href="#/" class="marca" aria-label="Rei dos Imóveis, início"><img src="logo-rdi.png" alt="RDI · Rei dos Imóveis" width="680" height="297"></a>
+  <a href="#/" class="marca marca-dupla" aria-label="Rei dos Imóveis, início"><img src="logo-rdi.png" alt="RDI" width="680" height="297"><i aria-hidden="true"></i><img class="marca-of" src="logo-cor.png" alt="Rei dos Imóveis Imobiliária" width="1058" height="435"></a>
   <nav class="nav" id="nav">
     <a href="#/pronto-para-morar" class="nav-pill" data-nav="pronto">Pronto para morar</a>
     <a href="#/na-planta" class="nav-pill" data-nav="planta">Apartamentos na planta</a>
-    <div class="drop"><button type="button" data-nav="conteudos">Conteúdos <svg width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><path d="M1.5 1l5 5-5 5" stroke="currentColor" stroke-width="1.7" fill="none"/></svg></button>
+    <div class="drop"><button type="button" class="nav-pill" data-nav="conteudos">Conteúdos</button>
       <div class="drop-menu">
         <a href="#/sobre-nos">Sobre nós<small>Quem somos e como atendemos</small></a>
         <a href="#/blog">Blog<small>Mercado, investimento e newsletter</small></a>
